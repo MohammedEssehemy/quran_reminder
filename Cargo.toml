@@ -2,6 +2,7 @@
 name = "quran_reminder"
 version = "0.1.0"
 edition = "2021"
+default-run = "main"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -13,8 +14,18 @@ once_cell = "^1.15"
 rust-i18n = "^0.6"
 serde = "^1.0"
 serde_json = "^1.0"
+rocket = "0.5.0-rc.1"
 
 [package.metadata.i18n]
 available-locales = ["en", "ar"]
 default-locale = "ar"
 load-path = "locales"
+
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[[bin]]
+name = "server"
+path = "src/bin/server.rs"
