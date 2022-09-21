@@ -15,7 +15,7 @@ struct PageResult {
     pub mime_type: String,
 }
 
-fn get_quran_page(version: QuranVersion) -> Result<PageResult, IoError> {
+fn get_quran_page(version: &QuranVersion) -> Result<PageResult, IoError> {
     let page_no = get_random_page_no();
     let file_path = format!("./assets/{}/{page_no}.png", version.get_path());
     let page = read(&file_path)?;
@@ -32,11 +32,11 @@ fn get_random_page_no() -> u32 {
     return page_no;
 }
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let sg = Sender::new(config.email_api_key);
-    let page = get_quran_page(config.quran_version).expect("failed to get random page");
+pub fn run_once(config: &Config) -> Result<(), Box<dyn Error>> {
+    let sg = Sender::new(config.email_api_key.clone());
+    let page = get_quran_page(&config.quran_version).expect("failed to get random page");
 
-    let sender_email = Email::new(config.email_from);
+    let sender_email = Email::new(config.email_from.clone());
     let mut message = Message::new(sender_email)
         .set_subject(&t!("daily_email.subject", locale = &config.email_language))
         .add_content(
@@ -50,7 +50,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                 .set_filename(format!("{}.jpg", page.no))
                 .set_mime_type(page.mime_type),
         );
-    for recipient in config.recipients {
+    for recipient in config.recipients.iter() {
         message = message.add_personalization(Personalization::new(Email::new(recipient)));
     }
     // println!("{:?}", serde_json::to_string(&message));
