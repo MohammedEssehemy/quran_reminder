@@ -1,4 +1,3 @@
-extern crate dotenv;
 use dotenv::dotenv;
 use std::process;
 use quran_reminder::{config::Config, run_once};
