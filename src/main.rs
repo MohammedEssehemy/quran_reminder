@@ -1,6 +1,6 @@
 use dotenv::dotenv;
 use std::process;
-use quran_reminder::{config::Config, run_once};
+use quran_reminder::{Config, run_once};
 
 
 fn main() {

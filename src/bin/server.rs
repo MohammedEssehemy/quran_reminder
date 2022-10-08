@@ -1,11 +1,8 @@
-//! A simple Rocket application, based on the example in [Getting Started][].
-//!
-//! [Getting Started]: https://rocket.rs/v0.5-rc/guide/getting-started/
 use job_scheduler::{Job, JobScheduler};
 use dotenv::dotenv;
 use rocket::{get, launch, routes, time::Instant};
 use std::thread;
-use quran_reminder::{config::Config, run_once};
+use quran_reminder::{Config, run_once};
 
 #[get("/")]
 fn index() -> &'static str {
