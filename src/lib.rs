@@ -4,7 +4,7 @@ mod transporter;
 mod config;
 
 use rand::Rng;
-use std::{error::Error, fs::read, io::Error as IoError};
+use std::{error::Error, io::Error as IoError};
 use quran_version::QuranVersion;
 use page_result::PageResult;
 pub use config::Config;
@@ -16,11 +16,9 @@ const QURAN_NO_PAGES: u32 = 604;
 fn get_quran_page(version: &QuranVersion) -> Result<PageResult, IoError> {
     let page_no = get_random_page_no();
     let file_path = format!("./assets/{}/{page_no}.png", version.get_path());
-    let page = read(&file_path)?;
     Ok(PageResult {
         no: page_no,
-        content: page,
-        mime_type: String::from("image/jpg"),
+        file_path,
     })
 }
 
@@ -33,7 +31,7 @@ fn get_random_page_no() -> u32 {
 pub fn run_once(config: &Config) -> Result<(), Box<dyn Error>> {
     let page = get_quran_page(&config.quran_version).expect("failed to get random page");
     for transport in config.transports.iter() {
-        transport.send(&page, &config.language).unwrap();
+        transport.send(&page.file_path, &config.language).unwrap();
     }
     Ok(())
 }

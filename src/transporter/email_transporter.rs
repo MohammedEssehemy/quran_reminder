@@ -1,7 +1,6 @@
-use std::{env, error::Error};
+use std::{env, error::Error, fs::read as read_file};
 
 use super::{Transport, TransportFromEnv};
-use crate::page_result::PageResult;
 use derivative::Derivative;
 use rust_i18n::t;
 use sendgrid::v3::{Attachment, Content, Email, Message, Personalization, Sender};
@@ -16,7 +15,9 @@ pub struct EmailTransporter {
 }
 
 impl Transport for EmailTransporter {
-    fn send(&self, page: &PageResult, language: &str) -> Result<(), Box<dyn Error>> {
+    fn send(&self, attachment: &str, language: &str) -> Result<(), Box<dyn Error>> {
+        let file_name = attachment.split("/").last().unwrap_or("unnamed.jpg");
+        let file_content = read_file(attachment)?;
         let sg = Sender::new(self.api_key.to_string());
         let sender_email = Email::new(self.from.to_string());
         let mut message = Message::new(sender_email)
@@ -28,9 +29,8 @@ impl Transport for EmailTransporter {
             )
             .add_attachment(
                 Attachment::new()
-                    .set_content(&page.content)
-                    .set_filename(format!("{}.jpg", page.no))
-                    .set_mime_type(page.mime_type.to_string()),
+                    .set_content(&file_content)
+                    .set_filename(file_name)
             );
         for recipient in self.recipients.iter() {
             message = message.add_personalization(Personalization::new(Email::new(recipient)));

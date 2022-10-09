@@ -2,3 +2,5 @@ en:
   daily_email:
     subject: Your daily quran page
     content: Attached is your daily quran page
+  daily_sms:
+    caption: "Automated message: reply with anything within 24 hours"

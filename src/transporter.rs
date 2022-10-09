@@ -2,10 +2,9 @@ mod email_transporter;
 mod transport;
 mod whatsapp_transporter;
 
-use crate::page_result::PageResult;
 use derivative::Derivative;
 use email_transporter::EmailTransporter;
-use std::error::Error;
+use std::{error::Error};
 use transport::{Transport, TransportFromEnv};
 use whatsapp_transporter::WhatsappTransporter;
 
@@ -32,7 +31,7 @@ impl Transporter {
         transports
     }
 
-    pub fn send(&self, page: &PageResult, language: &str) -> Result<(), Box<dyn Error>> {
-        self.0.send(page, language)
+    pub fn send(&self, attachment: &str, language: &str) -> Result<(), Box<dyn Error>> {
+        self.0.send(attachment, language)
     }
 }
