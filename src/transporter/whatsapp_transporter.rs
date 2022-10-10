@@ -7,11 +7,11 @@ use std::{collections::HashMap, env, error::Error};
 #[derive(Derivative)]
 #[derivative(Debug)]
 pub struct WhatsappTransporter {
-    #[derivative(Debug = "ignore")]
-    access_token: String,
     version: String,
     sender_phone_id: String,
     recipients: Vec<String>,
+    #[derivative(Debug = "ignore")]
+    access_token: String,
 }
 
 impl TransportFromEnv for WhatsappTransporter {
@@ -21,7 +21,7 @@ impl TransportFromEnv for WhatsappTransporter {
         let recipients = env::var("RECIPIENT_PHONES")?;
         let recipients = recipients
             .split(",")
-            .map(|st| String::from(st))
+            .map(|st| st.to_owned())
             .collect::<Vec<_>>();
         Ok(Box::new(WhatsappTransporter {
             access_token,

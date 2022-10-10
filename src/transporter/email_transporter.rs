@@ -9,9 +9,9 @@ use sendgrid::v3::{Attachment, Content, Email, Message, Personalization, Sender}
 #[derivative(Debug)]
 pub struct EmailTransporter {
     from: String,
+    recipients: Vec<String>,
     #[derivative(Debug = "ignore")]
     api_key: String,
-    recipients: Vec<String>,
 }
 
 impl Transport for EmailTransporter {
@@ -48,7 +48,7 @@ impl TransportFromEnv for EmailTransporter {
         let recipients = env::var("RECIPIENT_EMAILS")?;
         let recipients = recipients
             .split(",")
-            .map(|st| String::from(st))
+            .map(|st| st.to_owned())
             .collect::<Vec<_>>();
         Ok(Box::new(EmailTransporter {
             api_key,

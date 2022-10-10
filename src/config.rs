@@ -13,7 +13,7 @@ pub struct Config {
 impl Config {
     pub fn init() -> Config {
         let language = env::var("LANGUAGE").unwrap_or("ar".to_string());
-        let quran_version = QuranVersion::parse(env::var("QURAN_VERSION").unwrap_or_default());
+        let quran_version = QuranVersion::from_env();
         let transports = Transporter::from_env();
 
         if transports.len() == 0 {
