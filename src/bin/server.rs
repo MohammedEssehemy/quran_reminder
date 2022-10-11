@@ -1,8 +1,9 @@
-use job_scheduler::{Job, JobScheduler};
+use std::{env, panic, thread, process};
 use dotenv::dotenv;
+use humantime::format_duration;
+use job_scheduler::{Job, JobScheduler};
 use rocket::{get, launch, routes, time::Instant};
-use std::thread;
-use quran_reminder::{Config, run_once};
+use quran_reminder::{run_once, Config};
 
 #[get("/")]
 fn index() -> &'static str {
@@ -11,17 +12,23 @@ fn index() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
+    panic_handler();
     dotenv().ok();
-    thread::spawn(trigger_email_cron);
+    thread::spawn(|| {
+        println!("spawning another thread for the cronjob \"trigger_reminder_cron\"");
+        trigger_reminder_cron();
+    });
     rocket::build().mount("/", routes![index])
 }
 
-fn trigger_email_cron() {
+fn trigger_reminder_cron() {
     let config = Config::init();
-    println!("{config:?}");
+    println!("{config:#?}");
     let mut sched = JobScheduler::new();
     // every day at 6:10:10 GMT
-    sched.add(Job::new("10 10 6 * * * *".parse().unwrap(), || {
+    let cron_pattern = env::var("CRON_PATTERN").unwrap_or("10 10 6 * * * *".into());
+    println!("cron_pattern: {cron_pattern:#?}");
+    sched.add(Job::new(cron_pattern.parse().unwrap(), || {
         println!("running reminder job at: {:?}", Instant::now());
         if let Err(e) = run_once(&config) {
             eprintln!("reminder cron filed with error: {}", e);
@@ -29,7 +36,20 @@ fn trigger_email_cron() {
     }));
     loop {
         sched.tick();
-        println!("will sleep for {:?} ", sched.time_till_next_job());
-        thread::sleep(sched.time_till_next_job());
+        let remaining_time = sched.time_till_next_job();
+        println!("will sleep for {:#?} ", format_duration(remaining_time).to_string());
+        thread::sleep(remaining_time);
     }
+}
+
+fn panic_handler() {
+    // https://stackoverflow.com/questions/35988775/how-can-i-cause-a-panic-on-a-thread-to-immediately-end-the-main-thread
+    // take_hook() returns the default hook in case when a custom one is not set
+    let orig_hook = panic::take_hook();
+    panic::set_hook(Box::new(move |panic_info| {
+        // invoke the default handler and exit the process
+        orig_hook(panic_info);
+        println!("one thread panicked, closing the main thread");
+        process::exit(1);
+    }));
 }

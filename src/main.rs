@@ -6,7 +6,7 @@ use quran_reminder::{Config, run_once};
 fn main() {
     dotenv().ok();
     let config = Config::init();
-    println!("{config:?}");
+    println!("{config:#?}");
     if let Err(e) = run_once(&config) {
         eprintln!("Application error: {}", e);
 
