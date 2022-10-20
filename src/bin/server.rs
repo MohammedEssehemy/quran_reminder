@@ -1,9 +1,9 @@
-use std::{env, panic, thread, process};
 use dotenv::dotenv;
-use humantime::format_duration;
+use humantime::{format_duration, format_rfc3339};
 use job_scheduler::{Job, JobScheduler};
-use rocket::{get, launch, routes, time::Instant};
 use quran_reminder::{run_once, Config};
+use rocket::{get, launch, routes};
+use std::{env, panic, process, thread, time::SystemTime};
 
 #[get("/")]
 fn index() -> &'static str {
@@ -29,7 +29,10 @@ fn trigger_reminder_cron() {
     let cron_pattern = env::var("CRON_PATTERN").unwrap_or("10 10 6 * * * *".into());
     println!("cron_pattern: {cron_pattern:#?}");
     sched.add(Job::new(cron_pattern.parse().unwrap(), || {
-        println!("running reminder job at: {:?}", Instant::now());
+        println!(
+            "running reminder job at: {}",
+            format_rfc3339(SystemTime::now())
+        );
         if let Err(e) = run_once(&config) {
             eprintln!("reminder cron filed with error: {}", e);
         }
@@ -37,7 +40,7 @@ fn trigger_reminder_cron() {
     loop {
         sched.tick();
         let remaining_time = sched.time_till_next_job();
-        println!("will sleep for {:#?} ", format_duration(remaining_time).to_string());
+        println!("will sleep for {}", format_duration(remaining_time));
         thread::sleep(remaining_time);
     }
 }
