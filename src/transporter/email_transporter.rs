@@ -1,6 +1,6 @@
 use std::{env, error::Error, fs::read as read_file};
 
-use super::{Transport, TransportFromEnv};
+use super::Transport;
 use derivative::Derivative;
 use rust_i18n::t;
 use sendgrid::v3::{Attachment, Content, Email, Message, Personalization, Sender};
@@ -30,7 +30,7 @@ impl Transport for EmailTransporter {
             .add_attachment(
                 Attachment::new()
                     .set_content(&file_content)
-                    .set_filename(file_name)
+                    .set_filename(file_name),
             );
         for recipient in self.recipients.iter() {
             message = message.add_personalization(Personalization::new(Email::new(recipient)));
@@ -39,10 +39,8 @@ impl Transport for EmailTransporter {
         sg.send(&message)?;
         Ok(())
     }
-}
 
-impl TransportFromEnv for EmailTransporter {
-    fn from_env() -> Result<Box<dyn Transport>, Box<dyn Error>> {
+    fn from_env() -> Result<Box<Self>, Box<dyn Error>> {
         let api_key = env::var("SENDGRID_API_KEY")?;
         let from = env::var("SENDGRID_FROM")?;
         let recipients = env::var("RECIPIENT_EMAILS")?;

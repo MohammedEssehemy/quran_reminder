@@ -5,7 +5,7 @@ mod whatsapp_transporter;
 use derivative::Derivative;
 use email_transporter::EmailTransporter;
 use std::{env, error::Error};
-use transport::{Transport, TransportFromEnv};
+use transport::Transport;
 use whatsapp_transporter::WhatsappTransporter;
 
 #[derive(Derivative)]

@@ -1,4 +1,4 @@
-use super::{Transport, TransportFromEnv};
+use super::Transport;
 use derivative::Derivative;
 use reqwest::blocking::{multipart::Form, Client};
 use rust_i18n::t;
@@ -12,24 +12,6 @@ pub struct WhatsappTransporter {
     recipients: Vec<String>,
     #[derivative(Debug = "ignore")]
     access_token: String,
-}
-
-impl TransportFromEnv for WhatsappTransporter {
-    fn from_env() -> Result<Box<dyn Transport>, Box<dyn Error>> {
-        let access_token = env::var("WHATSAPP_ACCESS_TOKEN")?;
-        let sender_phone_id = env::var("WHATSAPP_SENDER_PHONE_ID")?;
-        let recipients = env::var("RECIPIENT_PHONES")?;
-        let recipients = recipients
-            .split(",")
-            .map(|st| st.to_owned())
-            .collect::<Vec<_>>();
-        Ok(Box::new(WhatsappTransporter {
-            access_token,
-            version: String::from("v15.0"),
-            sender_phone_id,
-            recipients,
-        }))
-    }
 }
 
 impl WhatsappTransporter {
@@ -77,5 +59,21 @@ impl Transport for WhatsappTransporter {
                 .error_for_status()?;
         }
         Ok(())
+    }
+
+    fn from_env() -> Result<Box<Self>, Box<dyn Error>> {
+        let access_token = env::var("WHATSAPP_ACCESS_TOKEN")?;
+        let sender_phone_id = env::var("WHATSAPP_SENDER_PHONE_ID")?;
+        let recipients = env::var("RECIPIENT_PHONES")?;
+        let recipients = recipients
+            .split(",")
+            .map(|st| st.to_owned())
+            .collect::<Vec<_>>();
+        Ok(Box::new(WhatsappTransporter {
+            access_token,
+            version: String::from("v15.0"),
+            sender_phone_id,
+            recipients,
+        }))
     }
 }
