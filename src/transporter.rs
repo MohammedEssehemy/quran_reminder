@@ -12,34 +12,42 @@ use whatsapp_transporter::WhatsappTransporter;
 #[derivative(Debug = "transparent")]
 pub struct Transporter(Box<dyn Transport>);
 
+macro_rules! init_transports_from_env {
+    ($enabled_transports: expr, $(($key: literal, $struct:ty)),+) => {{
+        let mut transports = vec![];
+        $(
+            if $enabled_transports.contains(&$key.to_string()) {
+                match <$struct>::from_env() {
+                    Ok(transport) => {
+                        transports.push(Transporter(transport));
+                    },
+                    Err(err) => {
+                        panic!("failed to init {:?} with error {}", stringify!($struct), err);
+                    }
+                }
+            }
+        )+
+        transports
+    }};
+}
+
 impl Transporter {
     fn get_enabled_transports() -> Vec<String> {
         env::var("TRANSPORTS")
             .unwrap_or("email, whatsapp".to_string())
             .split(",")
-            .map(|s| s.trim().to_owned())
+            .map(|s| s.trim().to_lowercase().to_owned())
             .collect()
     }
     pub fn from_env() -> Vec<Transporter> {
         let enabled_transports = Self::get_enabled_transports();
         println!("enabled_transports: {enabled_transports:#?}");
 
-        let mut transports: Vec<Transporter> = Vec::with_capacity(2);
-        if enabled_transports.contains(&"email".to_string()) {
-            if let Ok(email_transporter) = EmailTransporter::from_env() {
-                transports.push(Transporter(email_transporter));
-            } else {
-                eprintln!("failed to parse email_config");
-            }
-        }
-
-        if enabled_transports.contains(&"whatsapp".to_string()) {
-            if let Ok(whatsapp_transporter) = WhatsappTransporter::from_env() {
-                transports.push(Transporter(whatsapp_transporter));
-            } else {
-                eprintln!("failed to parse whatsapp_config");
-            }
-        }
+        let transports = init_transports_from_env!(
+            enabled_transports,
+            ("email", EmailTransporter),
+            ("whatsapp", WhatsappTransporter)
+        );
 
         transports
     }
