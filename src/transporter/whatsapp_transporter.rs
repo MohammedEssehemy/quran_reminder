@@ -1,4 +1,4 @@
-use super::Transport;
+use super::transport::{format_secret, Transport};
 use derivative::Derivative;
 use reqwest::blocking::{multipart::Form, Client};
 use rust_i18n::t;
@@ -10,7 +10,7 @@ pub struct WhatsappTransporter {
     version: String,
     sender_phone_id: String,
     recipients: Vec<String>,
-    #[derivative(Debug = "ignore")]
+    #[derivative(Debug(format_with = "format_secret"))]
     access_token: String,
 }
 

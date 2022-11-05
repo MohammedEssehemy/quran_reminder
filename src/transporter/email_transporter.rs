@@ -1,6 +1,6 @@
 use std::{env, error::Error, fs::read as read_file};
 
-use super::Transport;
+use super::transport::{format_secret, Transport};
 use derivative::Derivative;
 use rust_i18n::t;
 use sendgrid::v3::{Attachment, Content, Email, Message, Personalization, Sender};
@@ -10,7 +10,7 @@ use sendgrid::v3::{Attachment, Content, Email, Message, Personalization, Sender}
 pub struct EmailTransporter {
     from: String,
     recipients: Vec<String>,
-    #[derivative(Debug = "ignore")]
+    #[derivative(Debug(format_with = "format_secret"))]
     api_key: String,
 }
 
